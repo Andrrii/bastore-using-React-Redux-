@@ -3,24 +3,35 @@ import BookListItem from "../book-list-item"
 import { connect } from "react-redux"
 import { bindActionCreators } from "redux"
 import { WithBookstoreService } from "../hoc"
-import { booksLoaded } from "../../actions"
+import {fetchBooks } from "../../actions"
 import { compose } from "../../utils"
+import ErrorIndicator from "../error-indicator"
 
 import "./book-list"
+import Spinner from "../spinner"
 
 class BookList extends Component {
 
     componentDidMount() {
-        // 1. receive data
 
-        const {bookstoreService} = this.props
-        const data = bookstoreService.getBooks()
-        this.props.booksLoaded(data)
-        // 2. dispatch action to store 
+
+      
+    
+        this.props.fetchBooks()
+
     }
 
     render() {
-        const {books} = this.props
+        const {books,loading,error} = this.props
+
+        if(loading){
+            return <Spinner />
+        }
+
+        if (error){
+            return <ErrorIndicator />
+        }
+
         return (
             <ul className="book-list" >
                 {
@@ -38,14 +49,17 @@ class BookList extends Component {
 
 const mapStateToProps = (state) => {
     return {
-        books:state.books
+        loading: state.loading,
+        books: state.books,
+        error: state.error
     }
 }
-
-const mapDispatchToProps = (dispatch) => {
-    return bindActionCreators({
-        booksLoaded
-    }, dispatch)
+// ownProps - властивості які перейшли із WithBookstoreService до mapDispatchToProps
+const mapDispatchToProps = (dispatch,ownProps) => {
+    const {bookstoreService} = ownProps
+    return {
+        fetchBooks: fetchBooks(bookstoreService,dispatch)
+    }
 }
 
 export default compose(
